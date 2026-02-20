@@ -41,10 +41,10 @@ public class MemberService {
     //로그인
     public String login(LoginRequest dto) {
         Member member = memberRepository.findByUserName(dto.getUserName())
-                .orElseThrow(() -> new RuntimeException("아이디 없음"));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 없거나 비밀번호 다름"));
 
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
-            throw new RuntimeException("비밀번호 틀림");
+            throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 없거나 비밀번호 다름");
         }
 
         return jwtUtil.createToken(member.getUserName(), member.getAuth().name());
