@@ -18,7 +18,7 @@ FROM eclipse-temurin:21-jre-alpine
 WORKDIR /app
 
 # 빌드 스테이지에서 생성된 jar 파일 중 plain이 붙지 않은 실행 가능한 jar만 복사
-COPY --from=build /app/build/libs/*[!plain].jar app.jar
+COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
 
 # 컨테이너 실행 시 자바 실행
 ENTRYPOINT ["java", "-jar", "app.jar"]
