@@ -11,7 +11,7 @@ COPY src src
 
 # 실행 권한 부여 및 빌드 (테스트 제외)
 RUN chmod +x ./gradlew
-RUN ./gradlew clean build -x test
+RUN ./gradlew clean build -x test --no-daemon --max-workers=1
 
 # 2. 실행 스테이지
 FROM eclipse-temurin:21-jre-alpine
@@ -21,4 +21,4 @@ WORKDIR /app
 COPY --from=build /app/build/libs/*-SNAPSHOT.jar app.jar
 
 # 컨테이너 실행 시 자바 실행
-ENTRYPOINT ["java", "-jar", "app.jar"]
+ENTRYPOINT ["java", "-Xmx300M", "-Xms300M", "-jar", "app.jar"]
