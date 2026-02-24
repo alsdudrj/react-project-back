@@ -23,4 +23,5 @@ public class Item {
     private String producer;
     private String origin;
     private String shipping;
+    private String imgUrl;
 }
