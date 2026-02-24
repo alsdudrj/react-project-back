@@ -1,11 +1,11 @@
 package com.shop.entity;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
+import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.Setter;
+
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -20,8 +20,18 @@ public class Item {
     private String content;
 
     // 추가할 필드들
+    private String category;
     private String producer;
     private String origin;
     private String shipping;
     private String imgUrl;
+
+    //사이즈에 대한 1:N FK 설정
+    @OneToMany(mappedBy = "item", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ItemSizeStock> sizeStocks = new ArrayList<>();
+
+    public void addSizeStock(ItemSizeStock itemSizeStock) {
+        this.sizeStocks.add(itemSizeStock);
+        itemSizeStock.setItem(this);
+    }
 }
