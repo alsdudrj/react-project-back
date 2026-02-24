@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
 
 @Service
@@ -49,6 +50,31 @@ public class MemberService {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 없거나 비밀번호 다름");
         }
 
-        return jwtUtil.createToken(member.getUserName(), member.getAuth().name());
+        return jwtUtil.createToken(
+                member.getUserName(),
+                member.getAuth().name(),
+                member.getDisplayName()
+                );
+    }
+
+    //비밀번호 변경
+    @Transactional
+    public void updatePassword(String userName, String currentPassword, String newPassword) {
+        Member member = memberRepository.findByUserName(userName)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 없음"));
+
+        //현재 비밀번호 일치 여부 확인
+        if (!passwordEncoder.matches(currentPassword, member.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "현재 비밀번호가 일치하지 않습니다.");
+        }
+
+        //현재 비밀번호와 새 비밀번호가 같은지 체크
+        if (passwordEncoder.matches(newPassword, member.getPassword())) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST, "기존 비밀번호와 다른 비밀번호를 입력해주세요.");
+        }
+
+        //새 비밀번호 암호화 후 저장
+        member.setPassword(passwordEncoder.encode(newPassword));
+        //Transactional이 있으면 save를 따로 안 해도 DB에 반영 됨
     }
 }
