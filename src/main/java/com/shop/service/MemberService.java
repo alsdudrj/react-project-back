@@ -29,6 +29,8 @@ public class MemberService {
         Member member = new Member();
         member.setUserName(memberRequest.getUserName());
         member.setPassword(passwordEncoder.encode(memberRequest.getPassword()));
+        member.setAddress(memberRequest.getAddress());
+        member.setDetailAddress(memberRequest.getDetailAddress());
         member.setDisplayName(memberRequest.getDisplayName());
 
         //권한 설정

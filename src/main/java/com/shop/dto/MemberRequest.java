@@ -13,5 +13,9 @@ public class MemberRequest {
 
     private String displayName;
 
+    private String address;
+
+    private String detailAddress;
+
     private String auth;
 }

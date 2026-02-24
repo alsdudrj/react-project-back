@@ -19,6 +19,10 @@ public class Member {
 
     private String displayName;
 
+    private String address;
+
+    private String detailAddress;
+
     @Enumerated(EnumType.STRING)
     private Role auth;
 }
