@@ -3,16 +3,21 @@ package com.shop.service;
 import com.shop.dto.LoginRequest;
 import com.shop.dto.MemberRequest;
 import com.shop.dto.MemberResponseDTO;
+import com.shop.dto.SocialLoginRequest;
 import com.shop.entity.Member;
 import com.shop.entity.Role;
 import com.shop.repository.MemberRepository;
 import com.shop.util.JwtUtil;
+import lombok.Builder;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.server.ResponseStatusException;
+
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -58,6 +63,45 @@ public class MemberService {
                 member.getDisplayName(),
                 member.getEmail()
                 );
+    }
+
+    //소셜 로그인
+    @Transactional
+    public String processSocialLogin(SocialLoginRequest request) {
+        // 1. 기존 회원인지 확인 (userName 또는 email로 조회)
+        Optional<Member> memberOpt = memberRepository.findByUserName(request.getUserName());
+
+        Member member;
+        if (memberOpt.isPresent()) {
+            //이미 가입된 회원이라면 정보 가져오기
+            member = memberOpt.get();
+            
+            //기존 회원의 displayName이 없다면 업데이트
+            if (member.getDisplayName() == null) {
+                member.setDisplayName(request.getDisplayName());
+            }
+        } else {
+            //8자리 랜덤 난수 생성
+            String tempPassword = UUID.randomUUID().toString().substring(0, 8);
+            
+            //가입되지 않은 회원이라면 신규 회원가입 처리
+            member = Member.builder()
+                    .userName(request.getUserName())
+                    .email(request.getEmail())
+                    .displayName(request.getDisplayName())
+                    .auth(Role.ROLE_USER) //기본 권한 부여
+                    .password(passwordEncoder.encode(tempPassword)) //난수로 생성된 임시 비번
+                    .build();
+            memberRepository.save(member);
+        }
+
+        // 2. 우리 서버의 JWT 토큰 발행 (기존 로그인 로직에서 사용하던 토큰 생성 메서드 호출)
+        return jwtUtil.createToken(
+                member.getUserName(),
+                member.getAuth().name(),
+                member.getDisplayName(),
+                member.getEmail()
+        );
     }
 
     //비밀번호 변경

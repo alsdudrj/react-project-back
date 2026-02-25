@@ -1,10 +1,8 @@
 package com.shop.controller;
 
-import com.shop.dto.LoginRequest;
-import com.shop.dto.MemberRequest;
-import com.shop.dto.MemberResponseDTO;
-import com.shop.dto.PasswordChangeRequest;
+import com.shop.dto.*;
 import com.shop.entity.Member;
+import com.shop.service.KakaoMemberService;
 import com.shop.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -22,6 +20,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
     private final MemberService memberService;
+    private final KakaoMemberService kakaoMemberService;
 
     //회원가입
     @PostMapping("/register")
@@ -35,6 +34,24 @@ public class MemberController {
     public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
         String token = memberService.login(loginRequest);
 
+        return ResponseEntity.ok(token);
+    }
+    
+    //소셜로그인
+    @PostMapping("/social-login")
+    public ResponseEntity<?> socialLogin(@RequestBody SocialLoginRequest request) {
+        //소셜 계정으로 로그인 또는 회원가입 처리 후 토큰 생성
+        String token = memberService.processSocialLogin(request);
+
+        //서버전용 JWT 토큰 반환
+        return ResponseEntity.ok(token);
+    }
+
+    //소셜로그인(카카오)
+    @PostMapping("/social-login/kakao")
+    public ResponseEntity<?> kakaoLogin(@RequestBody KakaoLoginRequest request) {
+        //코드를 이용해 카카오에서 정보를 가져오고 JWT 발급
+        String token = kakaoMemberService.processKakaoLogin(request.getCode(), request.getRedirectUri());
         return ResponseEntity.ok(token);
     }
 
