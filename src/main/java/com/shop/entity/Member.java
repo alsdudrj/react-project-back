@@ -19,6 +19,8 @@ public class Member {
 
     private String displayName;
 
+    private String email;
+
     private String address;
 
     private String detailAddress;

@@ -2,6 +2,7 @@ package com.shop.service;
 
 import com.shop.dto.LoginRequest;
 import com.shop.dto.MemberRequest;
+import com.shop.dto.MemberResponseDTO;
 import com.shop.entity.Member;
 import com.shop.entity.Role;
 import com.shop.repository.MemberRepository;
@@ -33,6 +34,7 @@ public class MemberService {
         member.setAddress(memberRequest.getAddress());
         member.setDetailAddress(memberRequest.getDetailAddress());
         member.setDisplayName(memberRequest.getDisplayName());
+        member.setEmail(memberRequest.getEmail());
 
         //권한 설정
         Role role = Role.valueOf("ROLE_" + memberRequest.getAuth());
@@ -53,7 +55,8 @@ public class MemberService {
         return jwtUtil.createToken(
                 member.getUserName(),
                 member.getAuth().name(),
-                member.getDisplayName()
+                member.getDisplayName(),
+                member.getEmail()
                 );
     }
 
@@ -76,5 +79,43 @@ public class MemberService {
         //새 비밀번호 암호화 후 저장
         member.setPassword(passwordEncoder.encode(newPassword));
         //Transactional이 있으면 save를 따로 안 해도 DB에 반영 됨
+    }
+
+    //내 정보 조회
+    public MemberResponseDTO getMyInfo(String username) {
+        Member member = memberRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+
+        //엔티티를 DTO로 변환해서 반환
+        return new MemberResponseDTO(
+                member.getUserName(),
+                member.getEmail(),
+                member.getAddress(),
+                member.getDetailAddress()
+        );
+    }
+
+    //회원정보 수정
+    @Transactional
+    public void updateMemberInfo(String username, MemberResponseDTO updateDTO) {
+        //유저 조회
+        Member member = memberRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+
+        //필요한 정보 업데이트
+        member.setEmail(updateDTO.getEmail());
+        member.setAddress(updateDTO.getAddress());
+        member.setDetailAddress(updateDTO.getDetailAddress());
+    }
+
+    //회원탈퇴
+    @Transactional
+    public void withdrawMember(String username) {
+        //유저 존재유무 확인
+        Member member = memberRepository.findByUserName(username)
+                .orElseThrow(() -> new RuntimeException("탈퇴하려는 유저를 찾을 수 없습니다."));
+
+        //삭제
+        memberRepository.delete(member);
     }
 }
