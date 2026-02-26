@@ -58,39 +58,33 @@ public class MemberController {
     //비밀번호 변경
     @PostMapping("/change-password")
     public ResponseEntity<?> changePassword(
-            @AuthenticationPrincipal String userName, // 토큰에서 추출된 유저 아이디
+            Authentication authentication,
             @RequestBody PasswordChangeRequest request) {
 
-        memberService.updatePassword(userName, request.getCurrentPassword(), request.getNewPassword());
+        Long memberId = (Long) authentication.getDetails();
+
+        memberService.updatePasswordById(memberId, request.getCurrentPassword(), request.getNewPassword());
         return ResponseEntity.ok().body("비밀번호 변경 완료");
     }
 
     //내 정보 조회
     @GetMapping("/me")
-    public ResponseEntity<?> getMyInfo() {
-        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+    public ResponseEntity<?> getMyInfo(Authentication authentication) {
+        //jwt id 조회
+        Long memberId = (Long) authentication.getDetails();
 
-        //인증 정보가 없거나 로그인하지 않은 상태 체크
-        if (authentication == null || !authentication.isAuthenticated()
-                || authentication instanceof AnonymousAuthenticationToken) {
-            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body("인증되지 않은 사용자입니다.");
-        }
-
-        String username = authentication.getName(); // 토큰에 저장된 유저 ID/이름이 나옵니다.
-
-        MemberResponseDTO myInfo = memberService.getMyInfo(username);
+        MemberResponseDTO myInfo = memberService.getMyInfoById(memberId);
         return ResponseEntity.ok(myInfo);
     }
     
     //회원정보 수정
     @PutMapping("/me")
-    public ResponseEntity<?> updateMyInfo(@RequestBody MemberResponseDTO updateDTO) {
-        //SecurityContext에서 현재 로그인한 유효한 사용자의 ID를 추출
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> updateMyInfo(Authentication authentication, @RequestBody MemberResponseDTO updateDTO) {
+        //jwt id 조회
+        Long memberId = (Long) authentication.getDetails();
 
         try {
-            //정보 업데이트
-            memberService.updateMemberInfo(username, updateDTO);
+            memberService.updateMemberInfoById(memberId, updateDTO);
             return ResponseEntity.ok("정보가 성공적으로 수정되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
@@ -100,14 +94,12 @@ public class MemberController {
 
     //회원 탈퇴
     @DeleteMapping("/me")
-    public ResponseEntity<?> withdraw() {
-        //SecurityContext에서 현재 로그인한 사용자의 ID 추출
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+    public ResponseEntity<?> withdraw(Authentication authentication) {
+        //jwt id 조회
+        Long memberId = (Long) authentication.getDetails();
 
         try {
-            //삭제 로직
-            memberService.withdrawMember(username);
-
+            memberService.withdrawMemberById(memberId);
             return ResponseEntity.ok("회원 탈퇴가 완료되었습니다.");
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)

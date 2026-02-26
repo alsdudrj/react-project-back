@@ -42,6 +42,8 @@ public class KakaoMemberService {
 
         //카카오 고유 ID
         String kakaoId = userInfo.get("id").toString();
+        //식별자 생성
+        String providerId = "KAKAO_" + kakaoId;
 
         //데이터 파싱
         Map<String, Object> kakaoAccount = (Map<String, Object>) userInfo.get("kakao_account");
@@ -56,12 +58,12 @@ public class KakaoMemberService {
                 ? profile.get("nickname").toString()
                 : "카카오유저_" + kakaoId;
 
-        //DB 확인 및 회원가입
-        Member member = memberRepository.findByUserName(email)
+        //DB 확인 및 회원가입 (식별자로 회원 검색)
+        Member member = memberRepository.findByUserName(providerId)
                 .orElseGet(() -> {
                     Member newMember = Member.builder()
-                            .userName(email)
-                            .email(email)
+                            .userName(providerId) //고정된 식별자 저장
+                            .email(email)        //초기 이메일 저장
                             .displayName(nickname)
                             .auth(Role.ROLE_USER)
                             .password(passwordEncoder.encode(UUID.randomUUID().toString()))
@@ -72,6 +74,7 @@ public class KakaoMemberService {
         //서버 전용 JWT 생성
         return jwtUtil.createToken(
                 member.getUserName(),
+                member.getId(),
                 member.getAuth().name(),
                 member.getDisplayName(),
                 member.getEmail()

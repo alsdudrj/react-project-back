@@ -43,10 +43,13 @@ public class JwtFilter extends OncePerRequestFilter {
             Claims claims = jwtUtil.parseToken(token);
             String userName = claims.getSubject();
             String role = (String) claims.get("auth");
+            Long id = claims.get("id", Long.class);
 
             // Spring Security 전용 인증 객체 만들기
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(role)));
+
+            authenticationToken.setDetails(id);
 
             // 인증
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);

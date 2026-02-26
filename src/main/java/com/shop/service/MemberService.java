@@ -59,16 +59,17 @@ public class MemberService {
 
         return jwtUtil.createToken(
                 member.getUserName(),
+                member.getId(),
                 member.getAuth().name(),
                 member.getDisplayName(),
                 member.getEmail()
-                );
+        );
     }
 
     //소셜 로그인
     @Transactional
     public String processSocialLogin(SocialLoginRequest request) {
-        // 1. 기존 회원인지 확인 (userName 또는 email로 조회)
+        //기존 회원인지 확인
         Optional<Member> memberOpt = memberRepository.findByUserName(request.getUserName());
 
         Member member;
@@ -95,9 +96,10 @@ public class MemberService {
             memberRepository.save(member);
         }
 
-        // 2. 우리 서버의 JWT 토큰 발행 (기존 로그인 로직에서 사용하던 토큰 생성 메서드 호출)
+        //서버의 JWT 토큰 발행
         return jwtUtil.createToken(
                 member.getUserName(),
+                member.getId(),
                 member.getAuth().name(),
                 member.getDisplayName(),
                 member.getEmail()
@@ -106,8 +108,8 @@ public class MemberService {
 
     //비밀번호 변경
     @Transactional
-    public void updatePassword(String userName, String currentPassword, String newPassword) {
-        Member member = memberRepository.findByUserName(userName)
+    public void updatePasswordById(Long id, String currentPassword, String newPassword) {
+        Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저 없음"));
 
         //현재 비밀번호 일치 여부 확인
@@ -125,12 +127,17 @@ public class MemberService {
         //Transactional이 있으면 save를 따로 안 해도 DB에 반영 됨
     }
 
-    //내 정보 조회
-    public MemberResponseDTO getMyInfo(String username) {
-        Member member = memberRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("해당 유저를 찾을 수 없습니다."));
+    //컨트롤러에서 사용하기 위한 엔티티 조회 메서드
+    public Member getMemberByUsername(String username) {
+        return memberRepository.findByUserName(username)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
+    }
 
-        //엔티티를 DTO로 변환해서 반환
+    //내 정보 조회
+    public MemberResponseDTO getMyInfoById(Long id) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."));
+
         return new MemberResponseDTO(
                 member.getUserName(),
                 member.getEmail(),
@@ -141,12 +148,10 @@ public class MemberService {
 
     //회원정보 수정
     @Transactional
-    public void updateMemberInfo(String username, MemberResponseDTO updateDTO) {
-        //유저 조회
-        Member member = memberRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("유저를 찾을 수 없습니다."));
+    public void updateMemberInfoById(Long id, MemberResponseDTO updateDTO) {
+        Member member = memberRepository.findById(id)
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
 
-        //필요한 정보 업데이트
         member.setEmail(updateDTO.getEmail());
         member.setAddress(updateDTO.getAddress());
         member.setDetailAddress(updateDTO.getDetailAddress());
@@ -154,12 +159,10 @@ public class MemberService {
 
     //회원탈퇴
     @Transactional
-    public void withdrawMember(String username) {
-        //유저 존재유무 확인
-        Member member = memberRepository.findByUserName(username)
-                .orElseThrow(() -> new RuntimeException("탈퇴하려는 유저를 찾을 수 없습니다."));
-
-        //삭제
-        memberRepository.delete(member);
+    public void withdrawMemberById(Long id) {
+        if (!memberRepository.existsById(id)) {
+            throw new ResponseStatusException(HttpStatus.NOT_FOUND, "탈퇴하려는 유저를 찾을 수 없습니다.");
+        }
+        memberRepository.deleteById(id);
     }
 }
