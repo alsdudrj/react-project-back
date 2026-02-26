@@ -34,7 +34,9 @@ public class SecurityConfig {
                 )
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(
-                                "/health", "/user/login", "/user/social-login", "/user/social-login/kakao", "/user/register", "/item/all"
+                                "/health", "/user/login", "/user/social-login",
+                                "/user/social-login/kakao", "/user/register", "/item/all",
+                                "/payment/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/item/**").permitAll()
                         .requestMatchers("/user/me", "/user/change-password").authenticated()
