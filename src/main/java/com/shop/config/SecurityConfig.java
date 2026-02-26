@@ -39,9 +39,8 @@ public class SecurityConfig {
                                 "/payment/**"
                         ).permitAll()
                         .requestMatchers(HttpMethod.GET, "/item/**").permitAll()
+                        .requestMatchers("/item/edit/**", "/item/add", "/admin/**").hasRole("ADMIN")
                         .requestMatchers("/user/me", "/user/change-password").authenticated()
-                        .requestMatchers(HttpMethod.DELETE, "/item/**").hasRole("ADMIN")
-                        .requestMatchers("/admin/**", "/item/add").hasRole("ADMIN")
                         .anyRequest().authenticated()
                 );
 

@@ -46,6 +46,18 @@ public class ItemController {
         }
     }
 
+    //상품 수정
+    @PutMapping("/edit/{id}")
+    public ResponseEntity<?> updateItem(@PathVariable Long id, @RequestBody ItemRequestDto itemRequestDto) {
+        try {
+            itemService.updateItem(id, itemRequestDto);
+            return ResponseEntity.ok("상품 수정 완료");
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body("수정 실패: " + e.getMessage());
+        }
+    }
+
     //상품 삭제
     @DeleteMapping("/{id}")
     public ResponseEntity<?> deleteItem(@PathVariable Long id) {

@@ -35,26 +35,41 @@ public class JwtFilter extends OncePerRequestFilter {
             return;
         }
 
-        // 토큰만 추출
+        //토큰만 추출
         String token = authorization.split(" ")[1];
 
+        //토큰 형식 검사
+        if (token == null || token.equals("null") || !token.contains(".")) {
+            System.out.println("잘못된 형식의 토큰이 들어옴: " + token);
+            filterChain.doFilter(request, response);
+            return;
+        }
+
         try {
-            // JwtUtil을 사용해 토큰 해석
+            //JwtUtil을 사용해 토큰 해석
             Claims claims = jwtUtil.parseToken(token);
             String userName = claims.getSubject();
             String role = (String) claims.get("auth");
-            Long id = claims.get("id", Long.class);
+            Object idClaim = claims.get("id");
+            Long id = null;
+            if (idClaim instanceof Number) {
+                id = ((Number) idClaim).longValue();
+            }
 
-            // Spring Security 전용 인증 객체 만들기
+
+            System.out.println("인증 시도 유저: " + userName + ", 권한: " + role);
+
+            //Spring Security 전용 인증 객체 만들기
             UsernamePasswordAuthenticationToken authenticationToken =
                     new UsernamePasswordAuthenticationToken(userName, null, List.of(new SimpleGrantedAuthority(role)));
 
             authenticationToken.setDetails(id);
 
-            // 인증
+            //인증
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         } catch (Exception e) {
-            // 토큰이 가짜거나 만료된 경우
+            System.out.println("JWT 인증 실패 원인: " + e.getMessage());
+            e.printStackTrace();
         }
 
         filterChain.doFilter(request, response);
