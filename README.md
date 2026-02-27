@@ -22,28 +22,6 @@ Spring Boot 기반 REST API 서버입니다.
 ### Hosting Server
 - 백엔드: Render
 
-## 코드 설명
-### 로그인
-```java
-//로그인
-    @PostMapping("/login")
-    public ResponseEntity<?> login(@RequestBody LoginRequest loginRequest){
-        String token = memberService.login(loginRequest);
-
-        return ResponseEntity.ok(token);
-    }
-    
-    //소셜로그인
-    @PostMapping("/social-login")
-    public ResponseEntity<?> socialLogin(@RequestBody SocialLoginRequest request) {
-        //소셜 계정으로 로그인 또는 회원가입 처리 후 토큰 생성
-        String token = memberService.processSocialLogin(request);
-
-        //서버전용 JWT 토큰 반환
-        return ResponseEntity.ok(token);
-    }
-```
-
 ## 실행 방법
 .env 생성 후 application.properties 변수 설정 
 서버 실행
