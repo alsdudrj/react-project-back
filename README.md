@@ -20,8 +20,8 @@ Spring Boot 기반 REST API 서버입니다.
 - [링크](https://react-project-14mq.vercel.app/)
 
 ### Hosting Server
-- 백엔드: Render
+- Render
 
 ## 실행 방법
-.env 생성 후 application.properties 변수 설정 
-서버 실행
+- .env 생성 후 application.properties 변수 설정 
+- 서버 실행
