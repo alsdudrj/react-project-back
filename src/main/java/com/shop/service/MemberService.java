@@ -139,6 +139,7 @@ public class MemberService {
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."));
 
         return new MemberResponseDTO(
+                member.getId(),
                 member.getUserName(),
                 member.getEmail(),
                 member.getAddress(),
