@@ -29,10 +29,12 @@ public class MemberService {
 
     //회원가입
     public void register(MemberRequest memberRequest) {
+        //아이디 중복 체크
         if (memberRepository.existsByUserName(memberRequest.getUserName())) {
             throw new ResponseStatusException(HttpStatus.CONFLICT, "이미 존재하는 아이디");
         }
 
+        //엔티티 생성 및 비밀번호 암호화 저장
         Member member = new Member();
         member.setUserName(memberRequest.getUserName());
         member.setPassword(passwordEncoder.encode(memberRequest.getPassword()));
@@ -41,7 +43,7 @@ public class MemberService {
         member.setDisplayName(memberRequest.getDisplayName());
         member.setEmail(memberRequest.getEmail());
 
-        //권한 설정
+        //권한 설정 (ROLE_ 접두사 부여)
         Role role = Role.valueOf("ROLE_" + memberRequest.getAuth());
         member.setAuth(role);
 
@@ -50,13 +52,16 @@ public class MemberService {
 
     //로그인
     public String login(LoginRequest dto) {
+        //유저 존재 여부 확인
         Member member = memberRepository.findByUserName(dto.getUserName())
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 없거나 비밀번호 다름"));
 
+        //암호화된 비밀번호 일치 여부 확인
         if (!passwordEncoder.matches(dto.getPassword(), member.getPassword())) {
             throw new ResponseStatusException(HttpStatus.UNAUTHORIZED, "아이디 없거나 비밀번호 다름");
         }
 
+        //JWT 토큰 생성 및 반환
         return jwtUtil.createToken(
                 member.getUserName(),
                 member.getId(),
@@ -82,7 +87,7 @@ public class MemberService {
                 member.setDisplayName(request.getDisplayName());
             }
         } else {
-            //8자리 랜덤 난수 생성
+            //8자리 랜덤 난수 생성 (임시 비밀번호 생성)
             String tempPassword = UUID.randomUUID().toString().substring(0, 8);
             
             //가입되지 않은 회원이라면 신규 회원가입 처리
@@ -124,16 +129,18 @@ public class MemberService {
 
         //새 비밀번호 암호화 후 저장
         member.setPassword(passwordEncoder.encode(newPassword));
-        //Transactional이 있으면 save를 따로 안 해도 DB에 반영 됨
+
+        //Transactional 어노테이션 덕분에 메서드 종료 시 하이버네이트의 'Dirty Checking'에 의해 자동으로 DB에 반영
     }
 
     //컨트롤러에서 사용하기 위한 엔티티 조회 메서드
     public Member getMemberByUsername(String username) {
         return memberRepository.findByUserName(username)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."));
     }
 
     //내 정보 조회
+    @Transactional(readOnly = true)
     public MemberResponseDTO getMyInfoById(Long id) {
         Member member = memberRepository.findById(id)
                 .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."));
@@ -151,7 +158,7 @@ public class MemberService {
     @Transactional
     public void updateMemberInfoById(Long id, MemberResponseDTO updateDTO) {
         Member member = memberRepository.findById(id)
-                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "유저를 찾을 수 없습니다."));
+                .orElseThrow(() -> new ResponseStatusException(HttpStatus.NOT_FOUND, "해당 유저를 찾을 수 없습니다."));
 
         member.setEmail(updateDTO.getEmail());
         member.setAddress(updateDTO.getAddress());

@@ -1,17 +1,12 @@
 package com.shop.controller;
 
 import com.shop.dto.*;
-import com.shop.entity.Member;
 import com.shop.service.KakaoMemberService;
 import com.shop.service.MemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AnonymousAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -50,7 +45,7 @@ public class MemberController {
     //소셜로그인(카카오)
     @PostMapping("/social-login/kakao")
     public ResponseEntity<?> kakaoLogin(@RequestBody KakaoLoginRequest request) {
-        //코드를 이용해 카카오에서 정보를 가져오고 JWT 발급
+        //인가 코드를 이용해 카카오에서 정보를 가져오고 JWT 발급
         String token = kakaoMemberService.processKakaoLogin(request.getCode(), request.getRedirectUri());
         return ResponseEntity.ok(token);
     }
@@ -61,6 +56,7 @@ public class MemberController {
             Authentication authentication,
             @RequestBody PasswordChangeRequest request) {
 
+        //Authentication 객체에 저장된 memberId(PK) 추출
         Long memberId = (Long) authentication.getDetails();
 
         memberService.updatePasswordById(memberId, request.getCurrentPassword(), request.getNewPassword());

@@ -26,10 +26,10 @@ public class JwtFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain)
             throws ServletException, IOException {
 
-        // 헤더에서 Authorization 추출
+        //헤더에서 Authorization 추출
         String authorization = request.getHeader("Authorization");
 
-        // 토큰이 없거나 Bearer로 시작하지 않으면 통과
+        //토큰이 없거나 Bearer로 시작하지 않으면 통과
         if (authorization == null || !authorization.startsWith("Bearer ")) {
             filterChain.doFilter(request, response);
             return;

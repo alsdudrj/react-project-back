@@ -8,7 +8,7 @@ import lombok.*;
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
-@Builder
+@Builder    //빌더 패턴을 사용하여 객체 생성을 유연하게 함
 public class Member {
 
     @Id

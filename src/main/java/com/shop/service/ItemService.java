@@ -21,6 +21,7 @@ public class ItemService {
     public void saveItem(ItemRequestDto dto){
         Item item = new Item();
 
+        //기본 정보 매핑
         item.setTitle(dto.getTitle());
         item.setPrice(dto.getPrice());
         item.setContent(dto.getContent());
@@ -30,13 +31,13 @@ public class ItemService {
         item.setShipping(dto.getShipping());
         item.setImgUrl(dto.getImgUrl());
 
-        //사이즈 정보 변환 및 연결
+        //1:N 관계인 사이즈 정보 변환 및 연관관계 편의 메서드 호출
         for (SizeStockDto sizeDto : dto.getSizeStocks()) {
             ItemSizeStock sizeStock = new ItemSizeStock();
             sizeStock.setSize(sizeDto.getSize());
             sizeStock.setStock(sizeDto.getStock());
 
-            //Item 엔티티에 사이즈 추가
+            //Item 엔티티 내부에 정의된 연관관계 메서드를 통해 양방향 매핑
             item.addSizeStock(sizeStock);
         }
 
@@ -45,13 +46,16 @@ public class ItemService {
     }
 
     //상품 단건조회
+    @Transactional(readOnly = true) //읽기 전용으로 설정하여 성능 최적화
     public Item findById(Long id) {
         return itemRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("상품 없음"));
     }
 
     //상품 전체조회
+    @Transactional(readOnly = true)
     public List<Item> findAll(){
+
         return itemRepository.findAll();
     }
 
@@ -64,7 +68,7 @@ public class ItemService {
         //엔티티 데이터 업데이트
         item.updateItem(dto);
 
-        // Transactional 어노테이션 덕분에 메서드 종료 시 자동으로 DB에 반영됩니다.
+        //Transactional 어노테이션 덕분에 메서드 종료 시 하이버네이트의 'Dirty Checking'에 의해 자동으로 DB에 반영
     }
 
     //상품삭제
