@@ -32,7 +32,8 @@ public class ItemService {
         item.setImgUrl(dto.getImgUrl());
 
         //1:N 관계인 사이즈 정보 변환 및 연관관계 편의 메서드 호출
-        for (SizeStockDto sizeDto : dto.getSizeStocks()) {
+        //for (타입 변수명 : 반복할_컬렉션)
+        for (SizeStockDto sizeDto : dto.getSizeStocks()) { //dto.getSizeStocks() 안에 들어있는 요소들을 하나씩 꺼내서 sizeDto에 넣고 반복한다
             ItemSizeStock sizeStock = new ItemSizeStock();
             sizeStock.setSize(sizeDto.getSize());
             sizeStock.setStock(sizeDto.getStock());
